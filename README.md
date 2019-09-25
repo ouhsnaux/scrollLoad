@@ -90,14 +90,16 @@ style.css
 ### 1.3.1 基本方案 通过offsetTop计算元素是否出现在视口中
 *这种计算方案极力不推荐，计算繁琐，并且滚动容器嵌套的话还可能有问题。*  
 首先获取该元素的offsetTop，  
-然后递归获取父元素的offsetTop，相加之后的和就是视口左上角到该元素的距离，  
+然后递归获取父元素的offsetTop，相加之后的和就是视口左上角到该元素的距离， 
+![](https://user-gold-cdn.xitu.io/2019/9/25/16d684bdded8f71e?w=1140&h=540&f=png&s=6096)
 接着获取滚动容器，通过scrollTop获取滚动高度，滚动容器的条件是scrollHeight > clientHeight。当没有父元素满足该条件时返回null,此时计算滚动高度使用`document.scrollingElement.scrollTop`，在chrome中`document.scrollingElement`是`html`，同时也是`document.documentElement`。  
 通过对比屏幕高度+滚动高度与该距离就能得知元素是否出现在视口中。  
 这里有个坑就是offsetTop是根据position为relative的祖先元素或body来计算的，  
 假设A元素的position为relative，  
 B元素的position不是relative，B元素的父节点是A元素，offsetTop为36，  
 C节点为B元素的子节点，并且顶部与B元素重合，则C元素的offsetTop也是36，  
-因此递归获取offsetTop时，只能使用position为relative的祖先元素。  
+因此递归获取offsetTop时，只能使用position为relative的祖先元素。 
+
 ``` javascript
 import React from 'react';
 import './style.css';
@@ -159,9 +161,10 @@ class ScrollLoad extends React.Component {
 
 export default ScrollLoad;
 ```
+![](https://user-gold-cdn.xitu.io/2019/9/25/16d684b947fb7a09?w=1531&h=753&f=png&s=201004)
 ### 1.3.2 使用getboundingclientrect计算是否出现在视口中
 使用getBoundingClientRect可以获得节点相对于视口的信息。  
-
+![](https://user-gold-cdn.xitu.io/2019/9/25/16d684f1ec797af9?w=1140&h=540&f=png&s=6096)
 重写`checkVisible`函数
 ```javascript
   checkVisible = (node) => {
@@ -226,6 +229,7 @@ export default ScrollLoad;
   }
 ```
 
+![](https://user-gold-cdn.xitu.io/2019/9/25/16d6852bed691e01?w=1906&h=900&f=gif&s=890415)
 ## 2. 使用H5 API IntersectionObserver
 ### 2.1 如何实现
 直接上代码
@@ -274,3 +278,36 @@ IntersectionObserver能实现的功能还有很多。
 但是兼容性还有点问题，可以使用polyfill。
 
 ### 2.2 Hooks版本
+```js
+import React from 'react';
+import './style.css';
+
+const ScrollLoad = ({ text }) => {
+  const [loading, setLoading] = React.useState(true);
+  const ref = React.createRef();
+  React.useEffect(() => {
+    const observer = new IntersectionObserver((entries, observer) => {
+      entries.forEach((entry) => {
+        if (entry.isIntersecting) {
+          setLoading(false);
+          observer.unobserve(entry.target);
+        }
+      });
+    });
+    observer.observe(ref.current);
+
+    return () => {
+      observer.disconnect();
+    }
+  });
+  return (
+    <div className="scrollitem" ref={ref}>
+      {
+        loading ? 'Loading...' : text
+      }
+    </div>
+  )
+}
+
+export default ScrollLoad;
+```
