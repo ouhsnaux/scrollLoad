@@ -275,7 +275,7 @@ export default ScrollLoad;
 ```
 优点：IntersectionObserver优先度极低，消耗性能也就很低，并且不需要做很多判断，代码量少，逻辑简单。  
 IntersectionObserver能实现的功能还有很多。  
-但是兼容性还有点问题，可以使用polyfill。
+但是兼容性还有点问题，可以使用[polyfill](https://www.npmjs.com/package/intersection-observer)。
 
 ### 2.2 Hooks版本
 ```js
