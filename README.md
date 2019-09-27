@@ -1,6 +1,7 @@
 ## 前言
 项目中有两个页面有很多Echarts画的图，进去的时候特别卡，使用了滚动加载之后流畅很多，用户体验大幅提升。
 另外滚动加载还有很多其他用途，比如：滚动翻页，无线翻滚，图片出现在视口才请求。。。  
+[附上 github 链接](https://github.com/ouhsnaux/scrollLoad)   
 本文的内容
 1. 传统方案实现滚动加载
 2. H5 API IntersectionObserver实现滚动加载
@@ -91,7 +92,6 @@ style.css
 *这种计算方案极力不推荐，计算繁琐，并且滚动容器嵌套的话还可能有问题。*  
 首先获取该元素的offsetTop，  
 然后递归获取父元素的offsetTop，相加之后的和就是视口左上角到该元素的距离， 
-![](https://user-gold-cdn.xitu.io/2019/9/25/16d684bdded8f71e?w=1140&h=540&f=png&s=6096)
 接着获取滚动容器，通过scrollTop获取滚动高度，滚动容器的条件是scrollHeight > clientHeight。当没有父元素满足该条件时返回null,此时计算滚动高度使用`document.scrollingElement.scrollTop`，在chrome中`document.scrollingElement`是`html`，同时也是`document.documentElement`。  
 通过对比屏幕高度+滚动高度与该距离就能得知元素是否出现在视口中。  
 这里有个坑就是offsetTop是根据position为relative的祖先元素或body来计算的，  
@@ -99,7 +99,7 @@ style.css
 B元素的position不是relative，B元素的父节点是A元素，offsetTop为36，  
 C节点为B元素的子节点，并且顶部与B元素重合，则C元素的offsetTop也是36，  
 因此递归获取offsetTop时，只能使用position为relative的祖先元素。 
-
+![](https://user-gold-cdn.xitu.io/2019/9/25/16d6846dbc5536ea?imageView2/2/w/480/h/480/q/85/interlace/1)
 ``` javascript
 import React from 'react';
 import './style.css';
