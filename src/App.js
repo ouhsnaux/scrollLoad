@@ -1,5 +1,6 @@
 import React from 'react';
-import Scroll from './ScrollLoadHooks';
+import Scroll from './ComponentWithScrollLoad/ScrollItem';
+// import Scroll from './ScrollLoadHooks';
 // import Scroll from './ScrollLoadNew';
 // import Scroll from './ScrollLoadSimple';
 

@@ -311,3 +311,144 @@ const ScrollLoad = ({ text }) => {
 
 export default ScrollLoad;
 ```
+
+## 3. 代码复用
+### 3.1 高阶组件代码复用
+```js
+const ComponentWithScrollLoad = (Component) => {
+  return class extends React.Component {
+    state = { loading: true }
+    ref = React.createRef();
+
+    componentDidMount() {
+      const node = this.ref.current;
+      this.observer = new IntersectionObserver((entries, observer) => {
+        entries.forEach((entry) => {
+          if (entry.isIntersecting) {
+            this.setState({ loading: false });
+            observer.unobserve(node);
+          }
+        })
+      });
+      this.observer.observe(node);
+    }
+
+    componentWillUnmount() {
+      this.observer.disconnect();
+    }
+
+    render() {
+      const { loading } = this.state;
+      if (loading) {
+        const loadingText = this.props.Loading || 'loading';
+        return (
+          <div ref={this.ref}>{loadingText}</div>
+        )
+      }
+      return <Component {...this.props} />
+    }
+  }
+} 
+```
+使用方式：
+```js
+import React from 'react';
+import './style.css';
+
+import ComponentWithScrollLoad from './ComponentWithScrollLoad';
+const Component = ({ text }) => <div className="scrollitem">{text}</div>
+export default ComponentWithScrollLoad(Component);
+```
+### 3.2 render props 代码复用
+```js
+
+class ScrollLoad extends React.Component {
+  state = { loading: true }
+  ref = React.createRef();
+
+  componentDidMount() {
+    const node = this.ref.current;
+    this.observer = new IntersectionObserver((entries, observer) => {
+      entries.forEach((entry) => {
+        if (entry.isIntersecting) {
+          this.setState({ loading: false });
+          observer.unobserve(node);
+        }
+      })
+    });
+    this.observer.observe(node);
+  }
+
+  componentWillUnmount() {
+    this.observer.disconnect();
+  }
+
+  render() {
+    const { loading } = this.state;
+    if (loading) {
+      const loadingText = this.props.Loading || 'loading';
+      return (
+        <div ref={this.ref}>{loadingText}</div>
+      )
+    }
+    return this.props.children;
+  }
+}
+```
+使用方式
+```js
+import ScrollLoad from './ScrollLoad';
+const Component = ({ text }) => (
+  <ScrollLoad>
+    <div className="scrollitem">{text}</div>
+  </ScrollLoad>
+);
+export default Component;
+```
+### 3.3 usehooks
+useLoading.js
+```js
+import React from 'react';
+
+const useLoading = (ref) => {
+  const [loading, setLoading] = React.useState(true);
+  React.useEffect(() => {
+    if (!ref.current) {
+      return () => { }
+    }
+    const node = ref.current;
+    const observer = new IntersectionObserver((entries, observer) => {
+      entries.forEach((entry) => {
+        if (entry.isIntersecting) {
+          setLoading(false);
+          observer.unobserve(entry.target);
+        }
+      });
+    });
+    if (node != null) {
+      observer.observe(node);
+    }
+
+    return () => {
+      observer.disconnect();
+    }
+  }, [ref]);
+  return loading;
+}
+
+export default useLoading;
+```
+使用方式：
+```js
+import useLoading from './useLoading';
+
+const Component = ({ text }) => {
+  const ref = React.useRef(null);
+  const loading = useLoading(ref);
+  return (
+    <div className="scrollitem" ref={ref}>{loading ? 'loading' : text}</div>
+  )
+}
+
+export default Component;
+```
